@@ -5,6 +5,8 @@ import connectDB from "./controllers/mongodb.js";
 import productRouter from "./routes/productRouter.js"; 
 import userRouter from "./routes/userRoute.js";
 import connectCloudinary from "./config/cloudinary.js";
+import cartRouter from "./routes/cartRoute.js";
+import orderRouter from "./routes/orderRoute.js";
 
 
 // App config
@@ -22,6 +24,8 @@ app.use(express.json());
 
 app.use('/api/user' , userRouter);
 app.use('/api/product' , productRouter);
+app.use('/api/cart' , cartRouter);
+app.use('/api/order' , orderRouter);
 
 
 
