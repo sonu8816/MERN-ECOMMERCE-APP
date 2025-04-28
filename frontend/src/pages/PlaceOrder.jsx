@@ -16,7 +16,7 @@ function PlaceOrder() {
     getCartAmount,
     delivery_fee,
     products,
-    backendUrl
+    backendUrl,
   } = useContext(ShopContext);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -55,39 +55,61 @@ function PlaceOrder() {
         }
       }
       let orderData = {
-        address:formData,
-        items:orderItems,
-        amount:getCartAmount(),
-      }
-      switch(method){
-        case 'cod':
-          const response = await axios.post(backendUrl+"/api/order/place",orderData,{headers:{token}});
+        address: formData,
+        items: orderItems,
+        amount: getCartAmount(),
+      };
+      switch (method) {
+        case "cod":
+          const response = await axios.post(
+            backendUrl + "/api/order/place",
+            orderData,
+            { headers: { token } }
+          );
           console.log(response.data);
-          if(response.data.success){
+          if (response.data.success) {
             setCartItems({});
-            navigate('/orders');
+            navigate("/orders");
           } else {
             toast.error(response.data.message);
           }
-        break;
-        case 'stripe':
-          const stripeResponse = await axios.post(backendUrl+"/api/order/stripe",orderData,{headers:{token}});
-          if(stripeResponse.data.success){
-            const {session_url} = stripeResponse.data;
-            window.location.replace(session_url);
-          } else {
-            toast.error(stripeResponse.data.message);
-          } 
           break;
-           default:
+        case "stripe":
+          try {
+            const stripeResponse = await axios.post(
+              `${backendUrl}/api/order/stripe`,
+              orderData,
+              {
+                headers: { token },
+              }
+            );
+
+            if (stripeResponse.data.success) {
+              const { session_url } = stripeResponse.data;
+              window.location.replace(session_url); // Redirects to Stripe Checkout
+            } else {
+              toast.error(
+                stripeResponse.data.message || "Stripe session failed"
+              );
+            }
+          } catch (err) {
+            toast.error("Error creating Stripe session");
+            console.error(err);
+          }
+          break;
+
+        default:
+          toast.error("Invalid payment method selected");
           break;
       }
-      
     } catch (error) {}
   };
 
   return (
-    <form onSubmit={onSubmitHandler} className="flex flex-col sm:flex-row justify-between gap-4 pt-5 sm:pt-14 min-h-[80vh] border-t">
+    <form
+      onSubmit={onSubmitHandler}
+      className="flex flex-col sm:flex-row justify-between gap-4 pt-5 sm:pt-14 min-h-[80vh] border-t"
+    >
       {/* ------------- Left size ------------------ */}
       <div className="flex flex-col gap-4 w-full sm:max-w-[480px]">
         <div className="text sm:text-2xl my-3">
